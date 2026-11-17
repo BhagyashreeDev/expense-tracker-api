@@ -17,14 +17,23 @@ import com.expensetracker.expense_tracker_api.model.Category;
 import com.expensetracker.expense_tracker_api.model.Expense;
 import com.expensetracker.expense_tracker_api.repository.ExpenseRepository;
 
+/**
+ * Core business service handling expense persistence, filtering, and summary calculations.
+ */
 @Service 
 public class ExpenseService {
     private final ExpenseRepository expenseRepository;
 
+    /**
+     * Constructor injection: Spring automatically injects the repository bean.
+     */
     public ExpenseService(ExpenseRepository expenseRepository) {
         this.expenseRepository = expenseRepository;
     }
 
+    /**
+     * Creates and persists a new expense entity.
+     */
     public ExpenseResponse createExpense(ExpenseRequest request) {
         Expense expense = new Expense(
             request.title(),
@@ -33,9 +42,12 @@ public class ExpenseService {
             request.expenseDate()
         );
         Expense saved = expenseRepository.save(expense);
-        return ExpenseResponse.fromEntity(expense);
+        return ExpenseResponse.fromEntity(saved);
     }
 
+    /**
+     * Retrieves expenses with flexible criteria (by category, date range, or all).
+     */
     public List<ExpenseResponse> getAllExpenses(Category category, LocalDate startDate, LocalDate endDate) {
         List<Expense> expenses;
 
@@ -52,12 +64,18 @@ public class ExpenseService {
         return expenses.stream().map(ExpenseResponse::fromEntity).toList();
     }
 
+    /**
+     * Fetches a single expense or throws ResourceNotFoundException if absent.
+     */
     public ExpenseResponse getExpenseById(Long id) {
         Expense expense = expenseRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Expense not found with id: "+id));
         return ExpenseResponse.fromEntity(expense);
     }
 
+    /**
+     * Updates fields of an existing expense entity.
+     */
     public ExpenseResponse updateExpense(Long id, ExpenseRequest request) {
         Expense expense = expenseRepository.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException("Expense not found with id: "+id));
@@ -71,6 +89,9 @@ public class ExpenseService {
         return ExpenseResponse.fromEntity(updated);
     }
 
+    /**
+     * Deletes an expense by its unique identifier.
+     */
     public void deleteExpense(Long id) {
         if (!expenseRepository.existsById(id)) {
             throw new ResourceNotFoundException("Expense not found with id: "+id);
@@ -78,6 +99,9 @@ public class ExpenseService {
         expenseRepository.deleteById(id);
     }
 
+    /**
+     * Calculates monthly spending totals and category-by-category breakdown.
+     */
     public ExpenseSummaryResponse getMonthlySummary(int year, int month) {
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDate startDate = yearMonth.atDay(1);

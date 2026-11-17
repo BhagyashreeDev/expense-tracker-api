@@ -5,6 +5,9 @@ import java.util.Map;
 
 import com.expensetracker.expense_tracker_api.model.Category;
 
+/**
+ * DTO (Record) encapsulating monthly spending metrics and category-level aggregation.
+ */
 public record ExpenseSummaryResponse(
     BigDecimal totalSpent,
     int totalTransactions,
